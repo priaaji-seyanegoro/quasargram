@@ -10,8 +10,8 @@
 
     <q-footer class="bg-white" bordered>
       <q-tabs class="text-grey-10" active-color="primary">
-        <q-route-tab to="/" name="Home" icon="home" label="Home" />
-        <q-route-tab to="/camera" name="Camera" icon="camera" label="Camera" />
+        <q-route-tab to="/" icon="eva-home-outline" />
+        <q-route-tab to="/camera" icon="eva-camera-outline" />
       </q-tabs>
     </q-footer>
     <q-page-container>
@@ -28,3 +28,9 @@ export default {
   }
 };
 </script>
+
+<style lang="sass">
+.q-footer
+  .q-tab__icon
+    font-size: 30px
+</style>
