@@ -43,9 +43,9 @@
       </div>
 
       <div class="row justify-center q-ma-md">
-        <q-input class="col" label="Location" dense>
+        <q-input class="col" :loading="locationLoading" v-model="post.location" label="Location" dense>
           <template v-slot:append>
-            <q-btn round dense flat icon="my_location" />
+            <q-btn v-if="!locationLoading && locationSupported" round dense flat icon="my_location" @click="getLocation" />
           </template>
         </q-input>
       </div>
@@ -74,7 +74,14 @@ export default {
       isCapturedImage: false,
       isImageUpload: [],
       hasCameraSupport: true,
+      locationLoading : false
     };
+  },
+  computed:{
+    locationSupported(){
+      if('geolocation' in navigator) return true
+      return false
+    }
   },
   methods: {
     initCamera() {
@@ -125,7 +132,7 @@ export default {
       this.isCapturedImage = true;
       //convert file to blob
       this.post.imgURL = this.dataURItoBlob(canvas.toDataURL());
-      this.disableCamera()
+      this.disableCamera();
     },
     disableCamera() {
       this.$refs.video.srcObject.getVideoTracks().forEach((track) => {
@@ -155,15 +162,52 @@ export default {
       var blob = new Blob([ab], { type: mimeString });
       return blob;
     },
+    getLocation() {
+      this.locationLoading = true;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.getCityAndCountry(position);
+        },
+        (err) => {
+          this.locationError();
+        },
+        { timeout: 7000 }
+      );
+    },
+    getCityAndCountry(position) {
+      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1`;
+      this.$axios
+        .get(apiUrl)
+        .then((res) => {
+          this.locationSuccess(res);
+        })
+        .catch((err) => {
+          this.locationError();
+        });
+    },
+    locationSuccess(res) {
+      this.post.location = res.data.city;
+      if (res.data.country) {
+        this.post.location += `, ${res.data.country}`;
+      }
+      this.locationLoading = false
+    },
+    locationError() {
+      this.$q.dialog({
+        title: "Error",
+        message: "Sorry something wrong, cannot find your location",
+      });
+      this.locationLoading = false
+    },
   },
   mounted() {
     this.initCamera();
   },
-  beforeDestroy(){
-    if(this.hasCameraSupport){
-      this.disableCamera()
+  beforeDestroy() {
+    if (this.hasCameraSupport) {
+      this.disableCamera();
     }
-  }
+  },
 };
 </script>
 
