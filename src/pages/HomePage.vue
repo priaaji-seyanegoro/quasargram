@@ -14,7 +14,7 @@
           <SkeletonPostCard />
         </template> 
       </div>
-      <div class="col-4">
+      <div class="col-4 large-screen-only">
         <q-item class="fixed">
           <q-item-section avatar>
             <q-avatar size="48px">
@@ -51,7 +51,7 @@ export default {
     getPosts: async function () {
       this.isLoading = true;
       try {
-        const response = await this.$axios.get("http://localhost:3000/posts");
+        const response = await this.$axios.get(`${process.env.API}/posts`);
         this.posts = response.data;
         this.isLoading = false;
       } catch (err) {
