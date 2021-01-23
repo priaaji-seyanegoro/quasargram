@@ -2,9 +2,17 @@
   <q-page class="constrain q-pa-md">
     <div class="row row q-col-gutter-lg">
       <div class="col-12 col-sm-8">
-        <div v-for="post in posts" :key="post.id">
-          <PostCard :post="post" />
-        </div>
+        <template v-if="!isLoading && posts.length">
+          <div v-for="post in posts" :key="post.id">
+            <PostCard :post="post" />
+          </div>
+        </template>
+        <template v-else-if="!isLoading && !posts.length">
+            <h5 class="text-center text-grey">No Posts yet.</h5>
+        </template>
+        <template v-else>
+          <SkeletonPostCard />
+        </template> 
       </div>
       <div class="col-4">
         <q-item class="fixed">
@@ -26,48 +34,37 @@
 
 <script>
 import PostCard from "../components/PostCard";
+import SkeletonPostCard from "../components/SkeletonPostCard"
 export default {
   name: "HomePage",
   components: {
     PostCard,
+    SkeletonPostCard
   },
   data() {
     return {
-      posts: [
-        {
-          id: 1,
-          caption: "Dance all night",
-          date: 1610156882008,
-          location: "Zodiac, Jakarta",
-          imgUrl:
-            "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmanual.co.id%2Fwp-content%2Fuploads%2F2019%2F01%2F14-01-2019-Zodiac-Bar_Senopati-3-980x719.jpg&f=1&nofb=1",
-        },
-        {
-          id: 2,
-          caption: "Dance all night",
-          date: 1610156882008,
-          location: "Zodiac, Jakarta",
-          imgUrl:
-            "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmanual.co.id%2Fwp-content%2Fuploads%2F2019%2F01%2F14-01-2019-Zodiac-Bar_Senopati-3-980x719.jpg&f=1&nofb=1",
-        },
-        {
-          id: 3,
-          caption: "Dance all night",
-          date: 1610156882008,
-          location: "Zodiac, Jakarta",
-          imgUrl:
-            "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmanual.co.id%2Fwp-content%2Fuploads%2F2019%2F01%2F14-01-2019-Zodiac-Bar_Senopati-3-980x719.jpg&f=1&nofb=1",
-        },
-        {
-          id: 4,
-          caption: "Dance all night",
-          date: 1610156882008,
-          location: "Zodiac, Jakarta",
-          imgUrl:
-            "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmanual.co.id%2Fwp-content%2Fuploads%2F2019%2F01%2F14-01-2019-Zodiac-Bar_Senopati-3-980x719.jpg&f=1&nofb=1",
-        },
-      ],
+      posts: [],
+      isLoading: false,
     };
+  },
+  methods: {
+    getPosts: async function () {
+      this.isLoading = true;
+      try {
+        const response = await this.$axios.get("http://localhost:3000/posts");
+        this.posts = response.data;
+        this.isLoading = false;
+      } catch (err) {
+        this.$q.dialog({
+          title: "Error",
+          message: "Sorry something wrong, failed fetch data",
+        });
+        this.isLoading = false;
+      }
+    },
+  },
+  created() {
+    this.getPosts();
   },
 };
 </script>
