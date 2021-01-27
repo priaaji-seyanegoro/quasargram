@@ -29,8 +29,41 @@
       </q-toolbar>
     </q-header>
 
-    <q-footer class="bg-white small-screen-only" bordered>
-      <q-tabs class="text-grey-10" active-color="primary">
+    <q-footer class="bg-white" bordered>
+      <div class="banner-container bg-primary">
+        <div class="constrain">
+          <q-banner
+            v-if="showAppInstallBanner"
+            inline-actions
+            dense
+            class="bg-primary text-white text-sm"
+          >
+            <template v-slot:avatar>
+              <q-avatar
+                color="white"
+                text-color="grey-10"
+                icon="eva-camera-outline"
+                font-size="22px"
+              />
+            </template>
+            <b>Install Quasargram ?</b>
+
+            <template v-slot:action>
+              <q-btn
+                flat
+                label="Yes"
+                dense
+                class="q-px-sm"
+                @click="installApp"
+              />
+              <q-btn flat label="Later" dense class="q-px-sm" />
+              <q-btn flat label="Never" dense class="q-px-sm" />
+            </template>
+          </q-banner>
+        </div>
+      </div>
+
+      <q-tabs class="text-grey-10 small-screen-only" active-color="primary">
         <q-route-tab to="/" icon="eva-home-outline" />
         <q-route-tab to="/camera" icon="eva-camera-outline" />
       </q-tabs>
@@ -42,10 +75,39 @@
 </template>
 
 <script>
+let deferredPrompt;
 export default {
   name: "MainLayout",
   data() {
-    return {};
+    return {
+      showAppInstallBanner: false,
+    };
+  },
+  methods: {
+    installApp() {
+      // Hide the app provided install promotion
+      this.showAppInstallBanner = false;
+      // Show the install prompt
+      deferredPrompt.prompt();
+      // Wait for the user to respond to the prompt
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("User accepted the install prompt");
+        } else {
+          console.log("User dismissed the install prompt");
+        }
+      });
+    },
+  },
+  mounted() {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      deferredPrompt = e;
+      // Update UI notify the user they can install the PWA
+      this.showAppInstallBanner = true;
+    });
   },
 };
 </script>
