@@ -30,39 +30,56 @@
     </q-header>
 
     <q-footer class="bg-white" bordered>
-      <div class="banner-container bg-primary">
-        <div class="constrain">
-          <q-banner
-            v-if="showAppInstallBanner"
-            inline-actions
-            dense
-            class="bg-primary text-white text-sm"
-          >
-            <template v-slot:avatar>
-              <q-avatar
-                color="white"
-                text-color="grey-10"
-                icon="eva-camera-outline"
-                font-size="22px"
-              />
-            </template>
-            <b>Install Quasargram ?</b>
+      <transition
+        appear
+        enter-active-class="animated fadeIn"
+        leave-active-class="animated fadeOut"
+      >
+        <div class="banner-container bg-primary">
+          <div class="constrain">
+            <q-banner
+              v-if="showAppInstallBanner"
+              inline-actions
+              dense
+              class="bg-primary text-white text-sm"
+            >
+              <template v-slot:avatar>
+                <q-avatar
+                  color="white"
+                  text-color="grey-10"
+                  icon="eva-camera-outline"
+                  font-size="22px"
+                />
+              </template>
+              <b>Install Quasargram ?</b>
 
-            <template v-slot:action>
-              <q-btn
-                flat
-                label="Yes"
-                dense
-                class="q-px-sm"
-                @click="installApp"
-              />
-              <q-btn flat label="Later" dense class="q-px-sm" />
-              <q-btn flat label="Never" dense class="q-px-sm" />
-            </template>
-          </q-banner>
+              <template v-slot:action>
+                <q-btn
+                  flat
+                  label="Yes"
+                  dense
+                  class="q-px-sm"
+                  @click="installApp"
+                />
+                <q-btn
+                  flat
+                  label="Later"
+                  dense
+                  class="q-px-sm"
+                  @click="showAppInstallBanner = false"
+                />
+                <q-btn
+                  flat
+                  label="Never"
+                  dense
+                  class="q-px-sm"
+                  @click="neverShowAppInstallBanner"
+                />
+              </template>
+            </q-banner>
+          </div>
         </div>
-      </div>
-
+      </transition>
       <q-tabs class="text-grey-10 small-screen-only" active-color="primary">
         <q-route-tab to="/" icon="eva-home-outline" />
         <q-route-tab to="/camera" icon="eva-camera-outline" />
@@ -92,22 +109,33 @@ export default {
       // Wait for the user to respond to the prompt
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
-          console.log("User accepted the install prompt");
+          this.neverShowAppInstallBanner();
         } else {
           console.log("User dismissed the install prompt");
         }
       });
     },
+    neverShowAppInstallBanner() {
+      this.showAppInstallBanner = false;
+      this.$q.localStorage.set("neverShowAppInstall", true);
+    },
   },
   mounted() {
-    window.addEventListener("beforeinstallprompt", (e) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      deferredPrompt = e;
-      // Update UI notify the user they can install the PWA
-      this.showAppInstallBanner = true;
-    });
+    //cek to local storage
+    const isNeverInstallBanner = this.$q.localStorage.getItem(
+      "neverShowAppInstall"
+    );
+
+    if (!isNeverInstallBanner) {
+      window.addEventListener("beforeinstallprompt", (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Update UI notify the user they can install the PWA
+        this.showAppInstallBanner = true;
+      });
+    }
   },
 };
 </script>
