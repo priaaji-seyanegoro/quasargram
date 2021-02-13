@@ -3,3 +3,45 @@
  * is picked up by the build system ONLY if
  * quasar.conf > pwa > workboxPluginMode is set to "InjectManifest"
  */
+
+/*
+   dependencies
+*/
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+
+/*
+    Configuration
+*/
+precacheAndRoute(self.__WB_MANIFEST);
+
+/*
+    Caching Strategies
+*/
+registerRoute(
+    ({ url }) => url.host.startsWith('fonts.g'),
+    new CacheFirst({
+        cacheName: 'google-fonts',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 30,
+            }),
+            new CacheableResponsePlugin({
+                statuses: [0, 200]
+            }),
+        ],
+    })
+);
+
+registerRoute(
+    ({ url }) => url.pathname.startsWith('/posts'),
+    new NetworkFirst()
+);
+
+registerRoute(
+    ({ url }) => url.href.startsWith('http'),
+    new StaleWhileRevalidate()
+);
