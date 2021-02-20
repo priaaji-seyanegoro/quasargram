@@ -44,15 +44,35 @@
       </div>
 
       <div class="row justify-center q-ma-md">
-        <q-input class="col" :loading="locationLoading" v-model="post.location" label="Location" dense>
+        <q-input
+          class="col"
+          :loading="locationLoading"
+          v-model="post.location"
+          label="Location"
+          dense
+        >
           <template v-slot:append>
-            <q-btn v-if="!locationLoading && locationSupported" round dense flat icon="my_location" @click="getLocation" />
+            <q-btn
+              v-if="!locationLoading && locationSupported"
+              round
+              dense
+              flat
+              icon="my_location"
+              @click="getLocation"
+            />
           </template>
         </q-input>
       </div>
 
       <div class="row justify-center q-mt-lg">
-        <q-btn unelevated rounded color="primary" label="Post Image" @click="postImage" :disable="!post.caption || !post.location"/>
+        <q-btn
+          unelevated
+          rounded
+          color="primary"
+          label="Post Image"
+          @click="postImage"
+          :disable="!post.caption || !post.location"
+        />
       </div>
     </div>
   </q-page>
@@ -60,7 +80,7 @@
 
 <script>
 import { uid } from "quasar";
-import { QSpinnerFacebook } from 'quasar'
+import { QSpinnerFacebook } from "quasar";
 require("md-gum-polyfill");
 export default {
   name: "CameraPage",
@@ -76,14 +96,18 @@ export default {
       isCapturedImage: false,
       isImageUpload: [],
       hasCameraSupport: true,
-      locationLoading : false
+      locationLoading: false,
     };
   },
-  computed:{
-    locationSupported(){
-      if('geolocation' in navigator) return true
-      return false
-    }
+  computed: {
+    locationSupported() {
+      if ("geolocation" in navigator) return true;
+      return false;
+    },
+    isSupportedBackgroundSycn() {
+      if ("serviceWorker" in navigator && "SyncManager" in window) return true;
+      return false;
+    },
   },
   methods: {
     initCamera() {
@@ -192,45 +216,59 @@ export default {
       if (res.data.country) {
         this.post.location += `, ${res.data.country}`;
       }
-      this.locationLoading = false
+      this.locationLoading = false;
     },
     locationError() {
       this.$q.dialog({
         title: "Error",
         message: "Sorry something wrong, cannot find your location",
       });
-      this.locationLoading = false
+      this.locationLoading = false;
     },
-    postImage: async function(){
-      
-      let formData = new FormData()
-      formData.append('id' , this.post.id)
-      formData.append('caption' , this.post.caption)
-      formData.append('location' , this.post.location)
-      formData.append('date' , this.post.date)
-      formData.append('file' , this.post.imgURL , `${this.post.id}.png`)
-       this.$q.loading.show({
+
+    postImage: async function () {
+      let formData = new FormData();
+      formData.append("id", this.post.id);
+      formData.append("caption", this.post.caption);
+      formData.append("location", this.post.location);
+      formData.append("date", this.post.date);
+      formData.append("file", this.post.imgURL, `${this.post.id}.png`);
+      this.$q.loading.show({
         spinner: QSpinnerFacebook,
-      })
-      try{
-        const res = await this.$axios.post(`${process.env.API}/posts`, formData)
-        this.$q.loading.hide()
-        this.$router.push('/')
+      });
+      try {
+        const res = await this.$axios.post(
+          `${process.env.API}/createPosts`,
+          formData
+        );
+        this.$q.loading.hide();
+        this.$router.push("/");
         this.$q.notify({
-          message: 'Upload Successfully.',
-          color: 'primary',
+          message: "Upload Successfully.",
+          color: "primary",
           actions: [
-            { label: 'Dismiss', color: 'white', handler: () => { /* ... */ } }
-          ]
-        })
-      }catch(err){
-        this.$q.loading.hide()
-         this.$q.dialog({
-          title: "Error",
-          message: "Sorry something wrong, Upload Failed",
+            {
+              label: "Dismiss",
+              color: "white",
+              handler: () => {
+                /* ... */
+              },
+            },
+          ],
         });
+      } catch (err) {
+        this.$q.loading.hide();
+        if (!navigator.onLine && this.isSupportedBackgroundSycn) {
+          this.$q.notify('Post Created offline')
+          this.$router.push('/')
+        } else {
+          this.$q.dialog({
+            title: "Error",
+            message: "Sorry something wrong, Upload Failed",
+          });
+        }
       }
-    }
+    },
   },
   mounted() {
     this.initCamera();
