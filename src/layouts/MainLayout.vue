@@ -86,7 +86,9 @@
       </q-tabs>
     </q-footer>
     <q-page-container class="bg-grey-3">
-      <router-view />
+      <keep-alive :include="['HomePage']">
+        <router-view />
+      </keep-alive>
     </q-page-container>
   </q-layout>
 </template>
