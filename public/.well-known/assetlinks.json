@@ -2,7 +2,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.twa.quasargram",
+      "package_name": "app.web.quasargram_c0a5a.twa",
       "sha256_cert_fingerprints": [
         "FD:F0:08:6B:E3:19:5F:F9:7A:E2:60:28:0E:12:F2:78:B9:6B:C6:70:64:50:83:C2:96:05:BC:23:75:2A:DE:9B"
       ]
